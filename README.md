@@ -59,3 +59,18 @@ Each directory aligns with the architect's plan and now contains scaffolding or 
 
 - `docs/theory.md` outlines a CPU-only validation workflow using the built-in convergence utilities.
 - `scripts/profile_solver.py` profiles equilibrium solves on CPU and reports convergence statistics for quick regressions while awaiting accelerator access.
+- `scripts/run_validation.py` runs the full `ConvergenceValidator` battery and writes JSON results.
+- `scripts/train_dummy.py` executes a tiny trainer loop on random data as a smoke test.
+
+Examples:
+
+```bash
+# Profile solver timing and convergence on CPU
+python scripts/profile_solver.py --runs 5 --solver-type alternating
+
+# Run the validation battery and write results
+python scripts/run_validation.py --out validation.json
+
+# Execute a tiny CPU training smoke test
+python scripts/train_dummy.py --epochs 1 --batches 4 --max-iter 10
+```
