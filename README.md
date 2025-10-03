@@ -27,6 +27,12 @@ The project uses `pyproject.toml` for dependency management. Install in editable
 pip install -e .[dev]
 ```
 
+If you do not have access to GPU-capable dependencies yet, you can skip optional extras and install only the project code:
+
+```bash
+pip install -e . --no-deps
+```
+
 ## Repository Layout
 
 ```
@@ -48,3 +54,8 @@ tests/
 ```
 
 Each directory aligns with the architect's plan and now contains scaffolding or prototype implementations for the initial phases.
+
+## CPU Tooling
+
+- `docs/theory.md` outlines a CPU-only validation workflow using the built-in convergence utilities.
+- `scripts/profile_solver.py` profiles equilibrium solves on CPU and reports convergence statistics for quick regressions while awaiting accelerator access.
