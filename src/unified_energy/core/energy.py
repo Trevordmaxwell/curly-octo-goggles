@@ -83,19 +83,48 @@ class UnifiedEnergyFunction(nn.Module):
         regularization = self.regularization_energy(z, grad_z).mean()
         total = hopfield + consistency + regularization
         components = {
-            "hopfield": float(hopfield.detach()),
-            "consistency": float(consistency.detach()),
-            "regularization": float(regularization.detach()),
-            "total": float(total.detach()),
+            "hopfield": hopfield,
+            "consistency": consistency,
+            "regularization": regularization,
+            "total": total,
         }
         return total, components
 
-    def energy_gradient(self, z: Tensor, memory_patterns: Tensor) -> Tensor:
-        """Compute gradient of total energy w.r.t. ``z``."""
+    def energy_gradient(
+        self,
+        z: Tensor,
+        memory_patterns: Tensor,
+        z_next: Optional[Tensor] = None,
+    ) -> Tensor:
+        """Compute gradient of total energy w.r.t. ``z``.
+
+        Parameters
+        ----------
+        z:
+            Current latent state.
+        memory_patterns:
+            Hopfield-style memory bank.
+        z_next:
+            Optional next state (typically ``f(z)``). If omitted the method
+            defaults to a self-consistency evaluation.
+        """
+
+        if z_next is not None and z_next.shape != z.shape:
+            msg = "z_next must match z in shape"
+            raise ValueError(msg)
 
         z_req = z.detach().requires_grad_(True)
-        z_next = z_req
-        energy, _ = self.forward(z_req, z_next, memory_patterns, compute_grad=True)
+        if z_next is None:
+            z_next_input = z_req
+        else:
+            z_next_input = z_next.detach()
+        with torch.enable_grad():
+            energy, _ = self.forward(
+                z_req,
+                z_next_input,
+                memory_patterns,
+                compute_grad=True,
+            )
         grad = torch.autograd.grad(energy, z_req, create_graph=False, retain_graph=False)[0]
         return grad
 

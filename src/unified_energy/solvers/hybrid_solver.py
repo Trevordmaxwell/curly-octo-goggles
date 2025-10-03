@@ -65,10 +65,16 @@ class UnifiedEquilibriumSolver:
             accelerated = accelerated + weight * f_prev
         return accelerated
 
-    def energy_descent_step(self, z: Tensor, memory_patterns: Tensor) -> Tensor:
+    def energy_descent_step(
+        self,
+        z: Tensor,
+        x_context: Tensor,
+        memory_patterns: Tensor,
+    ) -> Tensor:
         """Gradient descent step on the unified energy."""
 
-        grad = self.energy.energy_gradient(z, memory_patterns)
+        z_next = self.dynamics(z, x_context, memory_patterns)
+        grad = self.energy.energy_gradient(z, memory_patterns, z_next=z_next)
         return z - self.config.learning_rate * grad
 
     def alternating_solve(
@@ -91,15 +97,16 @@ class UnifiedEquilibriumSolver:
             if iteration % 2 == 0:
                 z_next = self.fixed_point_step(z, x_context, memory_patterns, history)
             else:
-                z_next = self.energy_descent_step(z, memory_patterns)
+                z_next = self.energy_descent_step(z, x_context, memory_patterns)
             f_z = self.dynamics(z_next, x_context, memory_patterns)
             energy_value, components = self.energy(z_next, f_z, memory_patterns)
             energy_history.append(float(energy_value.detach()))
             history.append((z_next.detach(), f_z.detach()))
             fp_residual = torch.norm(f_z - z_next)
-            energy_grad_norm = torch.norm(self.energy.energy_gradient(z_next, memory_patterns))
+            energy_grad = self.energy.energy_gradient(z_next, memory_patterns, z_next=f_z)
+            energy_grad_norm = torch.norm(energy_grad)
             last_energy_value = energy_value
-            last_components = {k: float(v) for k, v in components.items()}
+            last_components = {k: float(v.detach()) for k, v in components.items()}
             last_fp_residual = fp_residual
             last_energy_grad = energy_grad_norm
             if self._has_converged(fp_residual.item(), energy_grad_norm.item(), energy_history):
@@ -109,7 +116,7 @@ class UnifiedEquilibriumSolver:
                     "final_fp_residual": fp_residual.item(),
                     "final_energy_grad": energy_grad_norm.item(),
                     "final_energy": float(energy_value.detach()),
-                    "energy_components": components,
+                    "energy_components": {k: float(v.detach()) for k, v in components.items()},
                     "energy_history": energy_history,
                 }
                 return z_next, info
@@ -155,10 +162,11 @@ class UnifiedEquilibriumSolver:
             optimizer.step()
             with torch.no_grad():
                 fp_residual = torch.norm(z - f_z)
-                energy_grad_norm = torch.norm(self.energy.energy_gradient(z, memory_patterns))
+                energy_grad = self.energy.energy_gradient(z, memory_patterns, z_next=f_z)
+                energy_grad_norm = torch.norm(energy_grad)
                 energy_history.append(float(energy_value.detach()))
                 last_energy_value = energy_value.detach()
-                last_components = {k: float(v) for k, v in components.items()}
+                last_components = {k: float(v.detach()) for k, v in components.items()}
                 last_fp_residual = fp_residual.detach()
                 last_energy_grad = energy_grad_norm.detach()
                 if self._has_converged(fp_residual.item(), energy_grad_norm.item(), energy_history):
@@ -168,7 +176,7 @@ class UnifiedEquilibriumSolver:
                         "final_fp_residual": fp_residual.item(),
                         "final_energy_grad": energy_grad_norm.item(),
                         "final_energy": float(energy_value.detach()),
-                        "energy_components": components,
+                        "energy_components": {k: float(v.detach()) for k, v in components.items()},
                         "energy_history": energy_history,
                     }
         info = {
@@ -217,7 +225,8 @@ class UnifiedEquilibriumSolver:
             f_z = self.dynamics(z, x_context, memory_patterns)
             energy_value, components = self.energy(z, f_z, memory_patterns)
             fp_residual = torch.norm(f_z - z)
-            energy_grad_norm = torch.norm(self.energy.energy_gradient(z, memory_patterns))
+            energy_grad = self.energy.energy_gradient(z, memory_patterns, z_next=f_z)
+            energy_grad_norm = torch.norm(energy_grad)
         return z.detach(), {
             "converged": fp_residual.item() < self.config.tol_fixedpoint
             and energy_grad_norm.item() < self.config.tol_energy,
@@ -225,7 +234,7 @@ class UnifiedEquilibriumSolver:
             "final_fp_residual": fp_residual.item(),
             "final_energy_grad": energy_grad_norm.item(),
             "final_energy": float(energy_value.detach()),
-            "energy_components": components,
+            "energy_components": {k: float(v.detach()) for k, v in components.items()},
             "energy_history": [],
         }
 

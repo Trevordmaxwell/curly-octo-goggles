@@ -17,14 +17,19 @@ class QuadraticEnergy:
     def __call__(self, z: torch.Tensor, z_next: torch.Tensor, memory_patterns: torch.Tensor):
         energy = 0.5 * torch.sum(z_next * z_next, dim=-1).mean()
         components = {
-            "hopfield": float(energy),
-            "consistency": float(torch.sum((z - z_next) ** 2, dim=-1).mean()),
-            "regularization": 0.0,
-            "total": float(energy),
+            "hopfield": energy,
+            "consistency": torch.sum((z - z_next) ** 2, dim=-1).mean(),
+            "regularization": torch.tensor(0.0, device=z.device, dtype=z.dtype),
+            "total": energy,
         }
         return energy, components
 
-    def energy_gradient(self, z: torch.Tensor, memory_patterns: torch.Tensor) -> torch.Tensor:
+    def energy_gradient(
+        self,
+        z: torch.Tensor,
+        memory_patterns: torch.Tensor,
+        z_next: torch.Tensor | None = None,
+    ) -> torch.Tensor:
         return z
 
 
@@ -44,9 +49,8 @@ class LinearSolver:
         for iteration in range(self.config.max_iter):
             z_next = self.dynamics(z, context, memory_patterns)
             energy, components = self.energy_fn(z, z_next, memory_patterns)
-            grad_norm = torch.linalg.vector_norm(
-                self.energy_fn.energy_gradient(z_next, memory_patterns)
-            ).item()
+            grad = self.energy_fn.energy_gradient(z_next, memory_patterns, z_next=z_next)
+            grad_norm = torch.linalg.vector_norm(grad).item()
             fp_residual = torch.linalg.vector_norm(z_next - z).item()
             info.update(
                 {

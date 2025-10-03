@@ -1,7 +1,7 @@
 """Unified dynamics blending Mamba temporal updates with Hopfield retrieval."""
 from __future__ import annotations
 
-from typing import Dict, Optional, Tuple, Union
+from typing import Dict, Tuple, Union
 
 import torch
 from torch import Tensor, nn
@@ -29,13 +29,10 @@ class UnifiedDynamics(nn.Module):
         self.beta = beta
         self.mamba = MambaLayer(d_model, d_state, d_conv)
         self.query_proj = nn.Linear(d_model, d_model)
-        if gate_type == "sigmoid":
-            gate_activation: nn.Module = nn.Sigmoid()
-        elif gate_type == "tanh":
-            gate_activation = nn.Tanh()
-        else:
+        if gate_type not in {"sigmoid", "tanh"}:
             raise ValueError("gate_type must be 'sigmoid' or 'tanh'")
-        self.gate = nn.Sequential(nn.Linear(d_model * 2, d_model), gate_activation)
+        self._gate_type = gate_type
+        self.gate_linear = nn.Linear(d_model * 2, d_model)
         self.out_proj = nn.Linear(d_model, d_model)
 
     def forward(
@@ -50,7 +47,11 @@ class UnifiedDynamics(nn.Module):
 
         mamba_update = self.mamba(x_context, state=z)
         hopfield_update = self.hopfield_update(z, memory_patterns)
-        gate_values = self.gate(torch.cat([mamba_update, hopfield_update], dim=-1))
+        gate_raw = self.gate_linear(torch.cat([mamba_update, hopfield_update], dim=-1))
+        if self._gate_type == "sigmoid":
+            gate_values = torch.sigmoid(gate_raw)
+        else:  # tanh gating gets rescaled into [0, 1]
+            gate_values = 0.5 * (torch.tanh(gate_raw) + 1.0)
         blended = gate_values * mamba_update + (1.0 - gate_values) * hopfield_update
         z_next = z + self.out_proj(blended)
         if return_components:
