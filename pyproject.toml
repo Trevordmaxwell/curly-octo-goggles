@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "unified-energy"
+version = "0.1.0"
+description = "Unified energy-based framework combining Mamba temporal processing, Modern Hopfield memory, and Deep Equilibrium reasoning."
+authors = [
+    {name = "Research Agent"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+keywords = ["energy-based", "deep equilibrium", "hopfield", "mamba", "machine learning"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent"
+]
+dependencies = [
+    "torch>=2.0",
+    "einops>=0.6",
+    "scipy>=1.10",
+    "jax[cpu]>=0.4",
+    "numpy>=1.24",
+    "mamba-ssm>=1.1",
+    "wandb>=0.15",
+    "matplotlib>=3.7",
+    "seaborn>=0.12",
+    "plotly>=5.15",
+    "networkx>=3.1",
+    "sympy>=1.11"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "mypy>=1.5",
+    "black>=23.7",
+    "ruff>=0.1",
+    "ipykernel>=6.25",
+    "jupyter>=1.0"
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I", "UP", "N", "ANN", "D"]
+ignore = ["ANN101", "ANN102", "ANN401", "D104", "D105", "D107"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra"
+testpaths = ["tests"]

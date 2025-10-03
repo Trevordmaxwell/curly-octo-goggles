@@ -1,0 +1,14 @@
+torch>=2.0.0
+einops
+scipy 
+jax[cpu] 
+numpy
+mamba-ssm
+wandb
+pytest
+jupyter
+matplotlib
+seaborn
+networkx
+plotly
+sympy
