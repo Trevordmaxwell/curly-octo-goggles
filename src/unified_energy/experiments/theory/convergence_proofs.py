@@ -204,12 +204,12 @@ class ConvergenceValidator:
             "lyapunov": self.test_lyapunov_function(),
         }
         all_pass = all(
-            (
-                results["contraction"].get("is_contractive", False)
-                and results["energy_descent"].get("monotonic_descent", False)
-                and results["stability"].get("is_stable", False)
-                and results["lyapunov"].get("is_lyapunov", False)
-            )
+            [
+                bool(results["contraction"].get("is_contractive", False)),
+                bool(results["energy_descent"].get("monotonic_descent", False)),
+                bool(results["stability"].get("is_stable", False)),
+                bool(results["lyapunov"].get("is_lyapunov", False)),
+            ]
         )
         results["summary"] = {"all_tests_passed": bool(all_pass)}
         return results
