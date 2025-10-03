@@ -245,7 +245,12 @@ class EnergyLandscapeAnalyzer:
             z_eq, info = self.model.solver.solve(z0, context, self.model.memory_patterns)
             if not info.get("converged", False):
                 continue
-            grad = self.model.energy_fn.energy_gradient(z_eq, self.model.memory_patterns)
+            z_next = self.model.dynamics(z_eq, context, self.model.memory_patterns)
+            grad = self.model.energy_fn.energy_gradient(
+                z_eq,
+                self.model.memory_patterns,
+                z_next=z_next,
+            )
             grad_norm = float(torch.linalg.vector_norm(grad))
             eigenvalues = self._estimate_hessian_eigs(z_eq, context)
             point_type = self._classify_eigenvalues(eigenvalues)

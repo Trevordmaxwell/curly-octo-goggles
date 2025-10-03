@@ -13,7 +13,7 @@ def test_energy_components_sum_to_total() -> None:
     memory = torch.randn(8, 5)
 
     total, components = energy_fn(z, z_next, memory, compute_grad=True)
-    reconstructed = sum(components[key] for key in ("hopfield", "consistency", "regularization"))
+    reconstructed = sum(float(components[key].detach()) for key in ("hopfield", "consistency", "regularization"))
     assert pytest.approx(float(total.detach())) == reconstructed
 
 
@@ -22,8 +22,9 @@ def test_energy_gradient_matches_autograd() -> None:
     z = torch.randn(2, 3, requires_grad=True)
     memory = torch.randn(6, 3)
 
-    grad = energy_fn.energy_gradient(z, memory)
-    loss, _ = energy_fn(z, z, memory, compute_grad=True)
+    z_next = torch.randn(2, 3)
+    grad = energy_fn.energy_gradient(z, memory, z_next=z_next)
+    loss, _ = energy_fn(z, z_next, memory, compute_grad=True)
     loss.backward()
     assert torch.allclose(grad, z.grad, atol=1e-5)
 

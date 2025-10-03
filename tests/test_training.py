@@ -24,6 +24,7 @@ class DummyModel(nn.Module):
         self.output = nn.Linear(d_model, vocab_size)
         self.memory_patterns = nn.Parameter(torch.zeros(7, d_model), requires_grad=False)
         self.solver = types.SimpleNamespace(config=_make_dummy_solver_config())
+        self.energy_fn = _DummyEnergy()
 
     def dynamics(self, z: torch.Tensor, context: torch.Tensor, memory_patterns: torch.Tensor) -> torch.Tensor:
         return z + 0.1 * torch.tanh(z)
@@ -51,6 +52,26 @@ class DummyModel(nn.Module):
         if return_diagnostics:
             return logits, diagnostics
         return logits
+
+
+class _DummyEnergy:
+    def __call__(self, z: torch.Tensor, z_next: torch.Tensor, memory_patterns: torch.Tensor):
+        energy = 0.5 * (z ** 2).mean()
+        components = {
+            "hopfield": energy,
+            "consistency": torch.mean((z - z_next) ** 2),
+            "regularization": torch.tensor(0.0, device=z.device, dtype=z.dtype),
+            "total": energy,
+        }
+        return energy, components
+
+    def energy_gradient(
+        self,
+        z: torch.Tensor,
+        memory_patterns: torch.Tensor,
+        z_next: torch.Tensor | None = None,
+    ) -> torch.Tensor:
+        return z
 
 
 def test_training_objective_returns_all_components() -> None:
@@ -101,4 +122,3 @@ def test_trainer_step_and_validation_cycle() -> None:
     val_stats = trainer.validate()
     assert "val/loss" in val_stats
     assert "val/convergence_rate" in val_stats
-
