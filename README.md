@@ -62,6 +62,17 @@ Each directory aligns with the architect's plan and now contains scaffolding or 
 - `scripts/run_validation.py` runs the full `ConvergenceValidator` battery and writes JSON results.
 - `scripts/train_dummy.py` executes a tiny trainer loop on random data as a smoke test.
 
+## Developer Conveniences
+
+- `Makefile` targets:
+  - `make install` / `make install-dev`
+  - `make test` / `make lint` / `make format` / `make format-check`
+  - `make profile` / `make validate` / `make train`
+  - `make ci` to run check suite locally
+- Pre-commit hooks (ruff + black):
+  - `pip install pre-commit` then `make pre-commit-install`
+  - Hooks run automatically on `git commit`
+
 Examples:
 
 ```bash
