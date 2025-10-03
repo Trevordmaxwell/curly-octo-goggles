@@ -1,11 +1,14 @@
 """Training utilities for the unified energy framework."""
 
-from .objectives import energy_training_loss
+from .objectives import ObjectiveConfig, UnifiedTrainingObjective
 from .schedules import linear_schedule
-from .trainer import train_epoch
+from .trainer import CurriculumConfig, UnifiedModelTrainer, train_epoch
 
 __all__ = [
-    "energy_training_loss",
+    "ObjectiveConfig",
+    "UnifiedTrainingObjective",
     "linear_schedule",
+    "CurriculumConfig",
+    "UnifiedModelTrainer",
     "train_epoch",
 ]

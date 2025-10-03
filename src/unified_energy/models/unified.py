@@ -5,13 +5,12 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
-
 import torch
 from torch import Tensor, nn
 from torch.nn import functional as F
 
 from ..core.dynamics import UnifiedDynamics
-from ..core.energy import UnifiedEnergyFunction
+from ..core.energy import EnergyHyperParameters, UnifiedEnergyFunction
 from ..core.mamba import MambaLayer
 from ..solvers.hybrid_solver import SolverConfig, UnifiedEquilibriumSolver
 
@@ -27,6 +26,9 @@ class UnifiedModelConfig:
     n_layers: int = 6
     memory_size: int = 1024
     beta: float = 2.0
+    alpha: float = 1.0
+    lambda_l2: float = 1e-2
+    lambda_smooth: float = 1e-3
     solver_type: str = "alternating"
     max_iterations: int = 30
     tolerance: float = 1e-3
@@ -39,6 +41,16 @@ class UnifiedModelConfig:
             tol_fixedpoint=self.tolerance,
             tol_energy=self.tolerance,
             solver_type=self.solver_type,
+        )
+
+    def energy_hyperparameters(self) -> EnergyHyperParameters:
+        """Return hyper-parameters for :class:`UnifiedEnergyFunction`."""
+
+        return EnergyHyperParameters(
+            beta=self.beta,
+            alpha=self.alpha,
+            lambda_l2=self.lambda_l2,
+            lambda_smooth=self.lambda_smooth,
         )
 
     def __post_init__(self) -> None:
@@ -56,6 +68,12 @@ class UnifiedModelConfig:
             raise ValueError("memory_size must be positive")
         if self.beta <= 0:
             raise ValueError("beta must be positive")
+        if self.alpha < 0:
+            raise ValueError("alpha must be non-negative")
+        if self.lambda_l2 < 0:
+            raise ValueError("lambda_l2 must be non-negative")
+        if self.lambda_smooth < 0:
+            raise ValueError("lambda_smooth must be non-negative")
         if self.max_iterations <= 0:
             raise ValueError("max_iterations must be positive")
         if self.tolerance <= 0:
@@ -64,6 +82,37 @@ class UnifiedModelConfig:
 
 class UnifiedMambaHopfieldDEQ(nn.Module):
     """Unified architecture with Mamba dynamics, Hopfield memory, and DEQ solver."""
+
+    @classmethod
+    def from_config(
+        cls,
+        config: UnifiedModelConfig,
+        **overrides: object,
+    ) -> "UnifiedMambaHopfieldDEQ":
+        """Instantiate the model from :class:`UnifiedModelConfig` values."""
+
+        params: Dict[str, object] = {
+            "d_model": config.d_model,
+            "d_state": config.d_state,
+            "d_conv": config.d_conv,
+            "n_layers": config.n_layers,
+            "memory_size": config.memory_size,
+            "beta": config.beta,
+            "alpha": config.alpha,
+            "lambda_l2": config.lambda_l2,
+            "lambda_smooth": config.lambda_smooth,
+            "solver_type": config.solver_type,
+            "max_iterations": config.max_iterations,
+            "tol": config.tolerance,
+        }
+        extra = dict(overrides)
+        solver_config = extra.pop("solver_config", config.solver_config())
+        params.update(extra)
+        return cls(
+            config.vocab_size,
+            solver_config=solver_config,  # type: ignore[arg-type]
+            **params,
+        )
 
     def __init__(
         self,
@@ -75,6 +124,9 @@ class UnifiedMambaHopfieldDEQ(nn.Module):
         n_layers: int = 6,
         memory_size: int = 1024,
         beta: float = 2.0,
+        alpha: float = 1.0,
+        lambda_l2: float = 1e-2,
+        lambda_smooth: float = 1e-3,
         solver_type: str = "alternating",
         max_iterations: int = 30,
         tol: float = 1e-3,
@@ -87,6 +139,14 @@ class UnifiedMambaHopfieldDEQ(nn.Module):
             raise ValueError("memory_size must be positive")
         if n_layers <= 0:
             raise ValueError("n_layers must be positive")
+        if beta <= 0:
+            raise ValueError("beta must be positive")
+        if alpha < 0:
+            raise ValueError("alpha must be non-negative")
+        if lambda_l2 < 0:
+            raise ValueError("lambda_l2 must be non-negative")
+        if lambda_smooth < 0:
+            raise ValueError("lambda_smooth must be non-negative")
 
         self.d_model = d_model
         self.memory_size = memory_size
@@ -106,7 +166,14 @@ class UnifiedMambaHopfieldDEQ(nn.Module):
             d_conv=d_conv,
             beta=beta,
         )
-        self.energy_fn = UnifiedEnergyFunction(d_model=d_model, beta=beta)
+        energy_hyper = EnergyHyperParameters(
+            beta=beta,
+            alpha=alpha,
+            lambda_l2=lambda_l2,
+            lambda_smooth=lambda_smooth,
+        )
+        self.energy_hyper = energy_hyper
+        self.energy_fn = UnifiedEnergyFunction(d_model=d_model, hyper=energy_hyper)
         self.solver = UnifiedEquilibriumSolver(
             self.dynamics,
             self.energy_fn,
@@ -189,6 +256,7 @@ class UnifiedMambaHopfieldDEQ(nn.Module):
                 "z_init": z_init,
                 "energy_trajectory": solver_info.get("energy_history", []),
                 "memory_usage": self._compute_memory_usage(z_equilibrium),
+                "context": context,
             }
             return logits, diagnostics
         return logits

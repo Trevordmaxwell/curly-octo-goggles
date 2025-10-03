@@ -1,3 +1,15 @@
-"""Experiment orchestration utilities (to be populated in later phases)."""
+"""Experiment orchestration utilities for the unified energy model."""
 
-__all__: list[str] = []
+from .theory import (
+    ConvergenceValidator,
+    EnergyLandscapeAnalyzer,
+    LandscapeConfig,
+    ValidationConfig,
+)
+
+__all__ = [
+    "ConvergenceValidator",
+    "ValidationConfig",
+    "EnergyLandscapeAnalyzer",
+    "LandscapeConfig",
+]

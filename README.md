@@ -11,7 +11,7 @@ The development roadmap follows ten sequential phases:
 3. Unified dynamics integrating Mamba-style state-space updates with Hopfield retrieval *(completed)*
 4. Hybrid equilibrium solver supporting alternating, simultaneous, and cascade modes *(completed)*
 5. Full model assembly with implicit-depth wrapper *(completed)*
-6. Training infrastructure with curriculum learning for energy-based objectives
+6. Training infrastructure with curriculum learning for energy-based objectives *(completed)*
 7. Theoretical validation experiments (convergence, Lyapunov, contraction analyses)
 8. Practical task experiments (associative recall, continual learning benchmarks)
 9. Energy landscape visualization tools
