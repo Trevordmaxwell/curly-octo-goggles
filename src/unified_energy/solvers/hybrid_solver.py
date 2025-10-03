@@ -83,6 +83,10 @@ class UnifiedEquilibriumSolver:
         history: List[Tuple[Tensor, Tensor]] = []
         energy_history: List[float] = []
         info: Dict[str, object] = {}
+        last_energy_value: Tensor | None = None
+        last_components: Dict[str, float] | None = None
+        last_fp_residual = torch.tensor(0.0, device=z.device)
+        last_energy_grad = torch.tensor(0.0, device=z.device)
         for iteration in range(self.config.max_iter):
             if iteration % 2 == 0:
                 z_next = self.fixed_point_step(z, x_context, memory_patterns, history)
@@ -94,6 +98,10 @@ class UnifiedEquilibriumSolver:
             history.append((z_next.detach(), f_z.detach()))
             fp_residual = torch.norm(f_z - z_next)
             energy_grad_norm = torch.norm(self.energy.energy_gradient(z_next, memory_patterns))
+            last_energy_value = energy_value
+            last_components = {k: float(v) for k, v in components.items()}
+            last_fp_residual = fp_residual
+            last_energy_grad = energy_grad_norm
             if self._has_converged(fp_residual.item(), energy_grad_norm.item(), energy_history):
                 info = {
                     "converged": True,
@@ -111,6 +119,15 @@ class UnifiedEquilibriumSolver:
             "iterations": self.config.max_iter,
             "energy_history": energy_history,
         }
+        if last_energy_value is not None:
+            info.update(
+                {
+                    "final_energy": float(last_energy_value.detach()),
+                    "final_fp_residual": float(last_fp_residual.detach()),
+                    "final_energy_grad": float(last_energy_grad.detach()),
+                    "energy_components": last_components or {},
+                }
+            )
         return z, info
 
     def simultaneous_solve(
@@ -124,6 +141,10 @@ class UnifiedEquilibriumSolver:
         z = z_init.clone().detach().requires_grad_(True)
         optimizer = torch.optim.Adam([z], lr=self.config.learning_rate)
         energy_history: List[float] = []
+        last_energy_value: Tensor | None = None
+        last_components: Dict[str, float] | None = None
+        last_fp_residual = torch.tensor(0.0, device=z.device)
+        last_energy_grad = torch.tensor(0.0, device=z.device)
         for iteration in range(self.config.max_iter):
             optimizer.zero_grad()
             f_z = self.dynamics(z, x_context, memory_patterns)
@@ -136,6 +157,10 @@ class UnifiedEquilibriumSolver:
                 fp_residual = torch.norm(z - f_z)
                 energy_grad_norm = torch.norm(self.energy.energy_gradient(z, memory_patterns))
                 energy_history.append(float(energy_value.detach()))
+                last_energy_value = energy_value.detach()
+                last_components = {k: float(v) for k, v in components.items()}
+                last_fp_residual = fp_residual.detach()
+                last_energy_grad = energy_grad_norm.detach()
                 if self._has_converged(fp_residual.item(), energy_grad_norm.item(), energy_history):
                     return z.detach(), {
                         "converged": True,
@@ -146,11 +171,21 @@ class UnifiedEquilibriumSolver:
                         "energy_components": components,
                         "energy_history": energy_history,
                     }
-        return z.detach(), {
+        info = {
             "converged": False,
             "iterations": self.config.max_iter,
             "energy_history": energy_history,
         }
+        if last_energy_value is not None:
+            info.update(
+                {
+                    "final_energy": float(last_energy_value),
+                    "final_fp_residual": float(last_fp_residual),
+                    "final_energy_grad": float(last_energy_grad),
+                    "energy_components": last_components or {},
+                }
+            )
+        return z.detach(), info
 
     def cascade_solve(
         self,
@@ -186,10 +221,12 @@ class UnifiedEquilibriumSolver:
         return z.detach(), {
             "converged": fp_residual.item() < self.config.tol_fixedpoint
             and energy_grad_norm.item() < self.config.tol_energy,
+            "iterations": self.config.max_iter,
             "final_fp_residual": fp_residual.item(),
             "final_energy_grad": energy_grad_norm.item(),
             "final_energy": float(energy_value.detach()),
             "energy_components": components,
+            "energy_history": [],
         }
 
     def solve(
