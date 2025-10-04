@@ -63,6 +63,7 @@ Each directory aligns with the architect's plan and now contains scaffolding or 
 - `scripts/train_dummy.py` executes a tiny trainer loop on random data as a smoke test.
 - `scripts/scan_validation.py` explores small model hyperparameters and surfaces CPU-friendly presets.
 - `scripts/random_validation.py` performs stochastic sampling over compact configurations and stops once a positive validation score is found.
+- Example outputs live under `docs/examples/` (see `random_search_seed*.json` and `cpu_validation_baseline.json`).
 
 ## Developer Conveniences
 

@@ -1,0 +1,484 @@
+{
+  "best": {
+    "config": {
+      "vocab_size": 16,
+      "d_model": 8,
+      "d_state": 6,
+      "n_layers": 2,
+      "memory_size": 32,
+      "beta": 0.9164697285349432,
+      "alpha": 0.3841352407037765,
+      "solver_type": "alternating",
+      "max_iterations": 8,
+      "tolerance": 0.005,
+      "learning_rate": 0.005015990025460251
+    },
+    "score": 1,
+    "summary": {
+      "contraction": {
+        "mean_lipschitz": 0.9983535073697567,
+        "max_lipschitz": 1.113815426826477,
+        "contractive_fraction": 0.53125,
+        "is_contractive": false
+      },
+      "energy_descent": {
+        "violation_rate": 0.5,
+        "monotonic_descent": false
+      },
+      "stability": {
+        "tested_equilibria": 0,
+        "stability_rate": 0.0,
+        "is_stable": false
+      },
+      "lyapunov": {
+        "lyapunov_rate": 0.875,
+        "is_lyapunov": true
+      },
+      "summary": {
+        "all_tests_passed": false
+      }
+    }
+  },
+  "history": [
+    {
+      "config": {
+        "vocab_size": 32,
+        "d_model": 6,
+        "d_state": 6,
+        "n_layers": 1,
+        "memory_size": 24,
+        "beta": 0.5398984312782451,
+        "alpha": 0.34347623076602524,
+        "solver_type": "alternating",
+        "max_iterations": 4,
+        "tolerance": 0.005,
+        "learning_rate": 0.029129091801526716
+      },
+      "score": 0,
+      "summary": {
+        "contraction": {
+          "mean_lipschitz": 1.0473568011075258,
+          "max_lipschitz": 1.161589503288269,
+          "contractive_fraction": 0.3125,
+          "is_contractive": false
+        },
+        "energy_descent": {
+          "violation_rate": 1.0,
+          "monotonic_descent": false
+        },
+        "stability": {
+          "tested_equilibria": 0,
+          "stability_rate": 0.0,
+          "is_stable": false
+        },
+        "lyapunov": {
+          "lyapunov_rate": 0.0,
+          "is_lyapunov": false
+        },
+        "summary": {
+          "all_tests_passed": false
+        }
+      }
+    },
+    {
+      "config": {
+        "vocab_size": 32,
+        "d_model": 10,
+        "d_state": 6,
+        "n_layers": 1,
+        "memory_size": 20,
+        "beta": 0.42155171337347463,
+        "alpha": 0.24633670312783673,
+        "solver_type": "alternating",
+        "max_iterations": 8,
+        "tolerance": 0.01,
+        "learning_rate": 0.01236995801385622
+      },
+      "score": 0,
+      "summary": {
+        "contraction": {
+          "mean_lipschitz": 1.0126612931489944,
+          "max_lipschitz": 1.073805809020996,
+          "contractive_fraction": 0.34375,
+          "is_contractive": false
+        },
+        "energy_descent": {
+          "violation_rate": 1.0,
+          "monotonic_descent": false
+        },
+        "stability": {
+          "tested_equilibria": 0,
+          "stability_rate": 0.0,
+          "is_stable": false
+        },
+        "lyapunov": {
+          "lyapunov_rate": 0.0,
+          "is_lyapunov": false
+        },
+        "summary": {
+          "all_tests_passed": false
+        }
+      }
+    },
+    {
+      "config": {
+        "vocab_size": 16,
+        "d_model": 12,
+        "d_state": 6,
+        "n_layers": 2,
+        "memory_size": 24,
+        "beta": 0.30593553620512093,
+        "alpha": 0.30621373882079567,
+        "solver_type": "alternating",
+        "max_iterations": 4,
+        "tolerance": 0.01,
+        "learning_rate": 0.00917440526203228
+      },
+      "score": 0,
+      "summary": {
+        "contraction": {
+          "mean_lipschitz": 1.01119027659297,
+          "max_lipschitz": 1.0760313272476196,
+          "contractive_fraction": 0.34375,
+          "is_contractive": false
+        },
+        "energy_descent": {
+          "violation_rate": 1.0,
+          "monotonic_descent": false
+        },
+        "stability": {
+          "tested_equilibria": 0,
+          "stability_rate": 0.0,
+          "is_stable": false
+        },
+        "lyapunov": {
+          "lyapunov_rate": 0.0,
+          "is_lyapunov": false
+        },
+        "summary": {
+          "all_tests_passed": false
+        }
+      }
+    },
+    {
+      "config": {
+        "vocab_size": 16,
+        "d_model": 8,
+        "d_state": 6,
+        "n_layers": 1,
+        "memory_size": 32,
+        "beta": 1.1200354932812886,
+        "alpha": 0.25069282998832454,
+        "solver_type": "alternating",
+        "max_iterations": 6,
+        "tolerance": 0.005,
+        "learning_rate": 0.04270269398878105
+      },
+      "score": 0,
+      "summary": {
+        "contraction": {
+          "mean_lipschitz": 0.997712230309844,
+          "max_lipschitz": 1.0642043352127075,
+          "contractive_fraction": 0.46875,
+          "is_contractive": false
+        },
+        "energy_descent": {
+          "violation_rate": 0.8125,
+          "monotonic_descent": false
+        },
+        "stability": {
+          "tested_equilibria": 0,
+          "stability_rate": 0.0,
+          "is_stable": false
+        },
+        "lyapunov": {
+          "lyapunov_rate": 0.3125,
+          "is_lyapunov": false
+        },
+        "summary": {
+          "all_tests_passed": false
+        }
+      }
+    },
+    {
+      "config": {
+        "vocab_size": 32,
+        "d_model": 10,
+        "d_state": 6,
+        "n_layers": 2,
+        "memory_size": 20,
+        "beta": 1.0391449119747598,
+        "alpha": 0.2735647967791277,
+        "solver_type": "alternating",
+        "max_iterations": 8,
+        "tolerance": 0.005,
+        "learning_rate": 0.005564664139752956
+      },
+      "score": 0,
+      "summary": {
+        "contraction": {
+          "mean_lipschitz": 1.0125071052461863,
+          "max_lipschitz": 1.0810842514038086,
+          "contractive_fraction": 0.40625,
+          "is_contractive": false
+        },
+        "energy_descent": {
+          "violation_rate": 0.9375,
+          "monotonic_descent": false
+        },
+        "stability": {
+          "tested_equilibria": 0,
+          "stability_rate": 0.0,
+          "is_stable": false
+        },
+        "lyapunov": {
+          "lyapunov_rate": 0.1875,
+          "is_lyapunov": false
+        },
+        "summary": {
+          "all_tests_passed": false
+        }
+      }
+    },
+    {
+      "config": {
+        "vocab_size": 64,
+        "d_model": 12,
+        "d_state": 6,
+        "n_layers": 2,
+        "memory_size": 64,
+        "beta": 0.9016231997128323,
+        "alpha": 0.18108257113786919,
+        "solver_type": "alternating",
+        "max_iterations": 4,
+        "tolerance": 0.001,
+        "learning_rate": 0.013165921216176841
+      },
+      "score": 0,
+      "summary": {
+        "contraction": {
+          "mean_lipschitz": 1.0398671794682741,
+          "max_lipschitz": 1.1026278734207153,
+          "contractive_fraction": 0.09375,
+          "is_contractive": false
+        },
+        "energy_descent": {
+          "violation_rate": 0.625,
+          "monotonic_descent": false
+        },
+        "stability": {
+          "tested_equilibria": 0,
+          "stability_rate": 0.0,
+          "is_stable": false
+        },
+        "lyapunov": {
+          "lyapunov_rate": 0.4375,
+          "is_lyapunov": false
+        },
+        "summary": {
+          "all_tests_passed": false
+        }
+      }
+    },
+    {
+      "config": {
+        "vocab_size": 32,
+        "d_model": 6,
+        "d_state": 6,
+        "n_layers": 2,
+        "memory_size": 12,
+        "beta": 0.6014104709269443,
+        "alpha": 0.24397128177372857,
+        "solver_type": "alternating",
+        "max_iterations": 4,
+        "tolerance": 0.001,
+        "learning_rate": 0.02555451815906542
+      },
+      "score": 0,
+      "summary": {
+        "contraction": {
+          "mean_lipschitz": 1.0000391490757465,
+          "max_lipschitz": 1.130035638809204,
+          "contractive_fraction": 0.5625,
+          "is_contractive": false
+        },
+        "energy_descent": {
+          "violation_rate": 1.0,
+          "monotonic_descent": false
+        },
+        "stability": {
+          "tested_equilibria": 0,
+          "stability_rate": 0.0,
+          "is_stable": false
+        },
+        "lyapunov": {
+          "lyapunov_rate": 0.0625,
+          "is_lyapunov": false
+        },
+        "summary": {
+          "all_tests_passed": false
+        }
+      }
+    },
+    {
+      "config": {
+        "vocab_size": 16,
+        "d_model": 10,
+        "d_state": 6,
+        "n_layers": 1,
+        "memory_size": 64,
+        "beta": 0.3793415654334684,
+        "alpha": 0.26991113295577746,
+        "solver_type": "alternating",
+        "max_iterations": 4,
+        "tolerance": 0.005,
+        "learning_rate": 0.04988986555718511
+      },
+      "score": 0,
+      "summary": {
+        "contraction": {
+          "mean_lipschitz": 0.998198214918375,
+          "max_lipschitz": 1.088257074356079,
+          "contractive_fraction": 0.375,
+          "is_contractive": false
+        },
+        "energy_descent": {
+          "violation_rate": 1.0,
+          "monotonic_descent": false
+        },
+        "stability": {
+          "tested_equilibria": 0,
+          "stability_rate": 0.0,
+          "is_stable": false
+        },
+        "lyapunov": {
+          "lyapunov_rate": 0.0,
+          "is_lyapunov": false
+        },
+        "summary": {
+          "all_tests_passed": false
+        }
+      }
+    },
+    {
+      "config": {
+        "vocab_size": 64,
+        "d_model": 12,
+        "d_state": 6,
+        "n_layers": 1,
+        "memory_size": 64,
+        "beta": 0.5589320897505714,
+        "alpha": 0.2231728213833325,
+        "solver_type": "alternating",
+        "max_iterations": 8,
+        "tolerance": 0.001,
+        "learning_rate": 0.015501793283877182
+      },
+      "score": 0,
+      "summary": {
+        "contraction": {
+          "mean_lipschitz": 0.9985659997910261,
+          "max_lipschitz": 1.0771527290344238,
+          "contractive_fraction": 0.4375,
+          "is_contractive": false
+        },
+        "energy_descent": {
+          "violation_rate": 1.0,
+          "monotonic_descent": false
+        },
+        "stability": {
+          "tested_equilibria": 0,
+          "stability_rate": 0.0,
+          "is_stable": false
+        },
+        "lyapunov": {
+          "lyapunov_rate": 0.0,
+          "is_lyapunov": false
+        },
+        "summary": {
+          "all_tests_passed": false
+        }
+      }
+    },
+    {
+      "config": {
+        "vocab_size": 16,
+        "d_model": 12,
+        "d_state": 6,
+        "n_layers": 1,
+        "memory_size": 64,
+        "beta": 0.7000499281341667,
+        "alpha": 0.31307755530963555,
+        "solver_type": "alternating",
+        "max_iterations": 4,
+        "tolerance": 0.01,
+        "learning_rate": 0.011062742028648511
+      },
+      "score": 0,
+      "summary": {
+        "contraction": {
+          "mean_lipschitz": 1.0047016758471727,
+          "max_lipschitz": 1.1097346544265747,
+          "contractive_fraction": 0.40625,
+          "is_contractive": false
+        },
+        "energy_descent": {
+          "violation_rate": 1.0,
+          "monotonic_descent": false
+        },
+        "stability": {
+          "tested_equilibria": 0,
+          "stability_rate": 0.0,
+          "is_stable": false
+        },
+        "lyapunov": {
+          "lyapunov_rate": 0.0625,
+          "is_lyapunov": false
+        },
+        "summary": {
+          "all_tests_passed": false
+        }
+      }
+    },
+    {
+      "config": {
+        "vocab_size": 16,
+        "d_model": 8,
+        "d_state": 6,
+        "n_layers": 2,
+        "memory_size": 32,
+        "beta": 0.9164697285349432,
+        "alpha": 0.3841352407037765,
+        "solver_type": "alternating",
+        "max_iterations": 8,
+        "tolerance": 0.005,
+        "learning_rate": 0.005015990025460251
+      },
+      "score": 1,
+      "summary": {
+        "contraction": {
+          "mean_lipschitz": 0.9983535073697567,
+          "max_lipschitz": 1.113815426826477,
+          "contractive_fraction": 0.53125,
+          "is_contractive": false
+        },
+        "energy_descent": {
+          "violation_rate": 0.5,
+          "monotonic_descent": false
+        },
+        "stability": {
+          "tested_equilibria": 0,
+          "stability_rate": 0.0,
+          "is_stable": false
+        },
+        "lyapunov": {
+          "lyapunov_rate": 0.875,
+          "is_lyapunov": true
+        },
+        "summary": {
+          "all_tests_passed": false
+        }
+      }
+    }
+  ]
+}

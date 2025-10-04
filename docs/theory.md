@@ -55,3 +55,8 @@ python scripts/random_validation.py --samples 300 --out random_search.json
 ```
 
 Because the models are randomly initialised, rerunning the validation may not reproduce the exact metric mix, but the saved JSON captures the full history so you can replay promising seeds.
+
+> Example: on seed 123 the search hits a configuration with a positive Lyapunov check after 11 samples.
+> See `docs/examples/random_search_seed123.json` for the full trace. On ten repeated validations of that
+> configuration only ~20 % of runs retained the Lyapunov pass, highlighting how sensitive the CPU setup is
+> to initial conditions.
