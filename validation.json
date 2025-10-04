@@ -1,7 +1,7 @@
 {
   "contraction": {
-    "mean_lipschitz": 1.010875005275011,
-    "max_lipschitz": 1.049268126487732,
+    "mean_lipschitz": 1.010852036997676,
+    "max_lipschitz": 1.0491878986358643,
     "contractive_fraction": 0.25,
     "is_contractive": false
   },
