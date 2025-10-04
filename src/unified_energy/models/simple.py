@@ -135,6 +135,7 @@ class SimpleLanguageModel(nn.Module):
         *,
         max_length: int = 20,
         temperature: float = 1.0,
+        top_k: int = 0,
     ) -> Tensor:
         """Autoregressively sample tokens from the model."""
 
@@ -144,6 +145,9 @@ class SimpleLanguageModel(nn.Module):
         for _ in range(max_length):
             logits, _ = self.forward(generated, return_state=True)
             logits = logits[:, -1, :] / max(temperature, 1e-5)
+            if top_k > 0 and top_k < logits.size(-1):
+                kth_values = torch.topk(logits, top_k, dim=-1).values[..., -1, None]
+                logits = logits.masked_fill(logits < kth_values, float("-inf"))
             probs = F.softmax(logits, dim=-1)
             next_token = torch.multinomial(probs, num_samples=1)
             generated = torch.cat([generated, next_token], dim=-1)

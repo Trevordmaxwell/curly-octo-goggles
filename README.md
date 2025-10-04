@@ -76,6 +76,20 @@ trainer (`SimpleLanguageModelTrainer`) keeps the optimisation loop minimal, and
 python scripts/train_simple.py --vocab-size 64 --seq-len 32 --epochs 2
 ```
 
+To work with real text, supply a UTF-8 corpus and the script will fall back to a
+byte-level vocabulary automatically:
+
+```bash
+python scripts/train_simple.py --text-path data/tiny_corpus.txt --seq-len 64 --epochs 5
+```
+
+Helpers:
+
+- `scripts/prepare_corpus.py --dataset tiny-shakespeare` downloads a ready-made corpus
+  into `data/` for CPU experiments.
+- `scripts/generate_simple.py --checkpoint ckpt.pt --prompt "hello"` samples from a saved
+  checkpoint using the built-in byte tokenizer.
+
 ## Developer Conveniences
 
 - `Makefile` targets:
