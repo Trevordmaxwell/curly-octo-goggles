@@ -42,12 +42,13 @@ class UnifiedDynamics(nn.Module):
         x_context: Tensor,
         memory_patterns: Tensor,
         *,
+        beta: float | None = None,
         return_components: bool = False,
     ) -> Union[Tensor, Tuple[Tensor, Dict[str, Tensor]]]:
         """Blend Mamba and Hopfield updates into a single step."""
 
         mamba_update = self.mamba(x_context, state=z)
-        hopfield_update = self.hopfield_update(z, memory_patterns)
+        hopfield_update = self.hopfield_update(z, memory_patterns, beta=beta)
         gate_raw = self.gate_linear(torch.cat([mamba_update, hopfield_update], dim=-1))
         if self._gate_type == "sigmoid":
             gate_values = torch.sigmoid(gate_raw)
@@ -64,14 +65,19 @@ class UnifiedDynamics(nn.Module):
             }
         return z_next
 
-    def hopfield_update(self, z: Tensor, memory_patterns: Tensor) -> Tensor:
+    def hopfield_update(
+        self, z: Tensor, memory_patterns: Tensor, *, beta: float | None = None
+    ) -> Tensor:
         """Modern Hopfield retrieval update."""
 
         if z.ndim != 2:
             raise ValueError("z must have shape (batch, d_model)")
         if memory_patterns.ndim != 2:
             raise ValueError("memory_patterns must have shape (memories, d_model)")
-        similarities = self.beta * (self.query_proj(z) @ memory_patterns.t())
+        beta_value = self.beta if beta is None else beta
+        if beta_value <= 0:
+            raise ValueError("beta must be positive")
+        similarities = beta_value * (self.query_proj(z) @ memory_patterns.t())
         attention_weights = F.softmax(similarities, dim=-1)
         return attention_weights @ memory_patterns
 

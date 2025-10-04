@@ -13,6 +13,7 @@ from torch.nn import functional as F
 from ..core.dynamics import UnifiedDynamics
 from ..core.energy import EnergyHyperParameters, UnifiedEnergyFunction
 from ..core.mamba import MambaLayer
+from ..solvers.beta_schedule import BetaAnnealingSchedule
 from ..solvers.hybrid_solver import SolverConfig, UnifiedEquilibriumSolver
 
 
@@ -33,6 +34,7 @@ class UnifiedModelConfig:
     solver_type: str = "alternating"
     max_iterations: int = 30
     tolerance: float = 1e-3
+    beta_schedule: BetaAnnealingSchedule | None = None
 
     def solver_config(self) -> SolverConfig:
         """Create a :class:`SolverConfig` reflecting the model settings."""
@@ -105,6 +107,7 @@ class UnifiedMambaHopfieldDEQ(nn.Module):
             "solver_type": config.solver_type,
             "max_iterations": config.max_iterations,
             "tol": config.tolerance,
+            "beta_schedule": config.beta_schedule,
         }
         extra = dict(overrides)
         solver_config = extra.pop("solver_config", config.solver_config())
@@ -132,6 +135,7 @@ class UnifiedMambaHopfieldDEQ(nn.Module):
         max_iterations: int = 30,
         tol: float = 1e-3,
         solver_config: Optional[SolverConfig] = None,
+        beta_schedule: Optional[BetaAnnealingSchedule] = None,
     ) -> None:
         super().__init__()
         if vocab_size <= 0:
@@ -185,6 +189,7 @@ class UnifiedMambaHopfieldDEQ(nn.Module):
                 tol_energy=tol,
                 solver_type=solver_type,
             ),
+            beta_schedule=beta_schedule,
         )
 
         # Learnable memory bank and writing mechanism
@@ -199,6 +204,7 @@ class UnifiedMambaHopfieldDEQ(nn.Module):
         # Runtime tracking utilities
         self.convergence_stats: List[Dict[str, object]] = []
         self._last_context: Optional[Tensor] = None
+        self.beta_schedule = beta_schedule
 
     def process_context(self, input_ids: Tensor) -> Tuple[Tensor, Tensor]:
         """Process token inputs with Mamba layers to obtain context and initial state."""

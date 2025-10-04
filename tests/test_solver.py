@@ -1,9 +1,12 @@
+import math
+
 import pytest
 
 torch = pytest.importorskip("torch")
 
 from unified_energy.core.dynamics import UnifiedDynamics
 from unified_energy.core.energy import UnifiedEnergyFunction
+from unified_energy.solvers.beta_schedule import BetaAnnealingSchedule
 from unified_energy.solvers.hybrid_solver import SolverConfig, UnifiedEquilibriumSolver
 
 
@@ -12,7 +15,7 @@ class _RecordingEnergy(UnifiedEnergyFunction):
         super().__init__(d_model=d_model)
         self.last_z_next = None
 
-    def energy_gradient(self, z, memory_patterns, z_next=None):
+    def energy_gradient(self, z, memory_patterns, z_next=None, *, beta=None):
         self.last_z_next = z_next
         return super().energy_gradient(z, memory_patterns, z_next=z_next)
 
@@ -76,11 +79,14 @@ def test_energy_gradient_receives_dynamics_output() -> None:
 
 def test_solver_reports_non_convergence() -> None:
     class ExpandingDynamics:
-        def __call__(self, z, context, memory_patterns):
+        def __call__(
+            self, z, context, memory_patterns, *, beta=None, return_components=False
+        ):
+            del return_components
             return z + 0.2 * z
 
     class QuadraticEnergy:
-        def __call__(self, z, z_next, memory_patterns):
+        def __call__(self, z, z_next, memory_patterns, *, beta=None):
             energy = torch.mean(z * z)
             components = {
                 "hopfield": energy,
@@ -90,7 +96,7 @@ def test_solver_reports_non_convergence() -> None:
             }
             return energy, components
 
-        def energy_gradient(self, z, memory_patterns, z_next=None):
+        def energy_gradient(self, z, memory_patterns, z_next=None, *, beta=None):
             return z
 
     dynamics = ExpandingDynamics()
@@ -110,3 +116,71 @@ def test_solver_reports_non_convergence() -> None:
     assert info["converged"] is False
     assert info["iterations"] == solver.config.max_iter
     assert len(info.get("energy_history", [])) == solver.config.max_iter
+
+
+def test_beta_schedule_is_applied_per_iteration() -> None:
+    class RecordingDynamics:
+        def __init__(self) -> None:
+            self.betas: list = []
+
+        def __call__(
+            self,
+            z,
+            context,
+            memory_patterns,
+            *,
+            beta=None,
+            return_components=False,
+        ):
+            del return_components
+            self.betas.append(beta)
+            return z + 0.1 * torch.ones_like(z)
+
+    class ZeroEnergy:
+        def __call__(self, z, z_next, memory_patterns, *, beta=None):
+            zero = torch.zeros((), device=z.device, dtype=z.dtype)
+            components = {
+                "hopfield": zero,
+                "consistency": zero,
+                "regularization": zero,
+                "total": zero,
+            }
+            return zero, components
+
+        def energy_gradient(self, z, memory_patterns, z_next=None, *, beta=None):
+            return torch.zeros_like(z)
+
+    dynamics = RecordingDynamics()
+    energy = ZeroEnergy()
+    schedule = BetaAnnealingSchedule(
+        beta_start=0.5,
+        beta_end=1.5,
+        warmup_steps=1,
+        total_steps=4,
+        schedule="linear",
+    )
+    solver = UnifiedEquilibriumSolver(
+        dynamics,
+        energy,
+        SolverConfig(max_iter=4, solver_type="alternating", tol_fixedpoint=1e-9),
+        beta_schedule=schedule,
+    )
+    z0 = torch.zeros(1, 3)
+    context = torch.zeros(1, 2, 3)
+    memory = torch.zeros(2, 3)
+
+    solver.solve(z0, context, memory)
+
+    expected = [
+        schedule.value(i, total_steps=solver.config.max_iter)
+        for i in range(1, solver.config.max_iter + 1)
+    ]
+    observed_unique: list[float] = []
+    for beta in dynamics.betas:
+        assert beta is not None
+        if not observed_unique or not math.isclose(beta, observed_unique[-1], rel_tol=1e-6):
+            observed_unique.append(beta)
+
+    assert len(observed_unique) == len(expected)
+    for obs, exp in zip(observed_unique, expected):
+        assert obs == pytest.approx(exp)
