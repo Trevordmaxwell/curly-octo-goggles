@@ -31,8 +31,12 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, default=None, help="Optional path to save JSON results")
     parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument("--runs", type=int, default=3, help="Number of random seeds per configuration")
-    parser.add_argument("--limit", type=int, default=None, help="Optional cap on configurations to evaluate")
+    parser.add_argument(
+        "--runs", type=int, default=3, help="Number of random seeds per configuration"
+    )
+    parser.add_argument(
+        "--limit", type=int, default=None, help="Optional cap on configurations to evaluate"
+    )
     return parser.parse_args()
 
 
