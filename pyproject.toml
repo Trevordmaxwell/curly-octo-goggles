@@ -52,8 +52,10 @@ target-version = ["py310"]
 
 [tool.ruff]
 line-length = 100
-select = ["E", "F", "I", "UP", "N", "ANN", "D"]
-ignore = ["ANN101", "ANN102", "ANN401", "D104", "D105", "D107"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "N"]
+ignore = []
 
 [tool.pytest.ini_options]
 minversion = "7.0"

@@ -2,6 +2,5 @@
 
 
 def placeholder() -> None:
-    """Placeholder for future implementation."""
-
-    raise NotImplementedError
+    """Raise NotImplementedError for unfinished reasoning tasks."""
+    raise NotImplementedError("Reasoning task placeholder")

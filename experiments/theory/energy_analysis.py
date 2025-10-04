@@ -2,6 +2,5 @@
 
 
 def placeholder() -> None:
-    """Placeholder for future experiment implementation."""
-
-    raise NotImplementedError
+    """Raise NotImplementedError for unfinished energy analysis experiments."""
+    raise NotImplementedError("Energy analysis placeholder")
