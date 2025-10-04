@@ -65,6 +65,17 @@ Each directory aligns with the architect's plan and now contains scaffolding or 
 - `scripts/random_validation.py` performs stochastic sampling over compact configurations and stops once a positive validation score is found.
 - Example outputs live under `docs/examples/` (see `random_search_seed*.json` and `cpu_validation_baseline.json`).
 
+## Simple Baseline
+
+When you need a lightweight language model without the unified energy stack, use
+`SimpleLanguageModel` in `src/unified_energy/models/simple.py`. The helper
+trainer (`SimpleLanguageModelTrainer`) keeps the optimisation loop minimal, and
+`scripts/train_simple.py` demonstrates training on synthetic data:
+
+```bash
+python scripts/train_simple.py --vocab-size 64 --seq-len 32 --epochs 2
+```
+
 ## Developer Conveniences
 
 - `Makefile` targets:
