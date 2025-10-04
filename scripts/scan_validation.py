@@ -32,28 +32,35 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--out", type=Path, default=None, help="Optional path to save JSON results")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--runs", type=int, default=3, help="Number of random seeds per configuration")
+    parser.add_argument("--limit", type=int, default=None, help="Optional cap on configurations to evaluate")
     return parser.parse_args()
 
 
 def candidate_configs() -> Iterable[SearchConfig]:
     solver_types = ["alternating", "simultaneous"]
-    d_models = [16, 24, 32]
-    learning_rates = [0.02, 0.05]
-    tolerances = [5e-3, 1e-3]
+    d_models = [12, 16, 24, 32]
+    learning_rates = [0.01, 0.02, 0.05]
+    tolerances = [1e-2, 5e-3, 1e-3]
+    betas = [1.0, 1.5, 2.0]
+    alphas = [0.5, 0.8, 1.2]
+    max_iters = [6, 10]
     for solver_type in solver_types:
         for d_model in d_models:
             for lr in learning_rates:
                 for tol in tolerances:
-                    yield SearchConfig(
-                        d_model=d_model,
-                        memory_size=max(32, d_model * 4),
-                        solver_type=solver_type,
-                        max_iter=10,
-                        tolerance=tol,
-                        learning_rate=lr,
-                        beta=1.5,
-                        alpha=0.8,
-                    )
+                    for beta in betas:
+                        for alpha in alphas:
+                            for max_iter in max_iters:
+                                yield SearchConfig(
+                                    d_model=d_model,
+                                    memory_size=max(32, d_model * 4),
+                                    solver_type=solver_type,
+                                    max_iter=max_iter,
+                                    tolerance=tol,
+                                    learning_rate=lr,
+                                    beta=beta,
+                                    alpha=alpha,
+                                )
 
 
 def run_single(cfg: SearchConfig, seed: int) -> dict:
@@ -120,7 +127,9 @@ def aggregate_results(cfg: SearchConfig, args: argparse.Namespace) -> dict:
 def main() -> None:
     args = parse_args()
     results = []
-    for cfg in candidate_configs():
+    for idx, cfg in enumerate(candidate_configs(), start=1):
+        if args.limit is not None and idx > args.limit:
+            break
         result = aggregate_results(cfg, args)
         results.append(result)
         print(
