@@ -19,4 +19,5 @@ __all__ = [
     "analysis",
     "utils",
     "visualization",
+    "tasks",
 ]

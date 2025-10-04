@@ -27,6 +27,17 @@ results = validator.run_all_tests()
 print(results["summary"])
 ```
 
+You can also run the same battery from the CLI for quick experiments:
+
+```bash
+python scripts/run_validation.py --out docs/examples/convergence_validator_baseline.json \
+    --d-model 32 --n-layers 2 --memory-size 64 --max-iter 10 --tolerance 5e-3
+```
+
+The repository ships with the latest recorded output from this command under
+`docs/examples/convergence_validator_baseline.json`, which makes it easy to
+compare local tweaks against a saved baseline.
+
 All of the validation utilities purposefully avoid GPU-only kernels, so the script above typically finishes in under a minute on a modern laptop. Individual tests can be invoked directly (e.g. `validator.test_contraction_property()`) when you want to focus on a single guarantee.
 
 ## Interpreting Diagnostics Without a GPU
