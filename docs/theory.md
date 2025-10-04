@@ -47,3 +47,11 @@ python scripts/scan_validation.py --runs 2 --out validation_scan.json
 ```
 
 The tool prints a ranked table (highest mean score first) and optionally saves the full JSON report. Once you identify a configuration with a few passing metrics, pass its values back to `scripts/run_validation.py` (or set them inline in a notebook) to generate reproducible diagnostics.
+
+For a quicker but noisier search, `scripts/random_validation.py` randomly samples the same space and stops when it finds a configuration with at least one successful metric:
+
+```bash
+python scripts/random_validation.py --samples 300 --out random_search.json
+```
+
+Because the models are randomly initialised, rerunning the validation may not reproduce the exact metric mix, but the saved JSON captures the full history so you can replay promising seeds.

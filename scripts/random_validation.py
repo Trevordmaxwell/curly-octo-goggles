@@ -82,7 +82,9 @@ def run_validation(config: dict) -> dict:
     model = build_model(config)
     validator = ConvergenceValidator(
         model,
-        config=ValidationConfig(context_length=3, batch_size=1, max_perturbation_trials=1, stability_radius=0.02),
+        config=ValidationConfig(
+            context_length=3, batch_size=1, max_perturbation_trials=1, stability_radius=0.02
+        ),
         device="cpu",
     )
     try:
@@ -110,7 +112,9 @@ def main() -> None:
         print("No configurations evaluated.")
         return
     print("\nBest configuration:")
-    print(json.dumps({"config": best.config, "score": best.score, "summary": best.summary}, indent=2))
+    print(
+        json.dumps({"config": best.config, "score": best.score, "summary": best.summary}, indent=2)
+    )
     if args.out:
         args.out.write_text(
             json.dumps(
