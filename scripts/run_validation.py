@@ -14,7 +14,9 @@ from unified_energy.models.unified import UnifiedMambaHopfieldDEQ, UnifiedModelC
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--out", type=Path, default=Path("validation_results.json"), help="Output JSON path")
+    p.add_argument(
+        "--out", type=Path, default=Path("validation_results.json"), help="Output JSON path"
+    )
     p.add_argument("--d-model", type=int, default=64)
     p.add_argument("--memory-size", type=int, default=128)
     p.add_argument("--context-length", type=int, default=6)
@@ -55,4 +57,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

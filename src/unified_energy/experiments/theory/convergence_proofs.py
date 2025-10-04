@@ -1,4 +1,5 @@
 """Empirical validation utilities for the unified equilibrium formulation."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -86,9 +87,7 @@ class ConvergenceValidator:
 
         max_lip = max(lipschitz_values)
         mean_lip = sum(lipschitz_values) / len(lipschitz_values)
-        contractive_ratio = sum(1.0 for v in lipschitz_values if v < 1.0) / len(
-            lipschitz_values
-        )
+        contractive_ratio = sum(1.0 for v in lipschitz_values if v < 1.0) / len(lipschitz_values)
         return {
             "mean_lipschitz": mean_lip,
             "max_lipschitz": max_lip,
@@ -97,7 +96,9 @@ class ConvergenceValidator:
         }
 
     @torch.no_grad()
-    def test_energy_descent(self, num_trajectories: int = 16, num_steps: int = 20) -> Dict[str, float]:
+    def test_energy_descent(
+        self, num_trajectories: int = 16, num_steps: int = 20
+    ) -> Dict[str, float]:
         """Check that the unified energy decreases along iterative updates."""
 
         violations = 0
@@ -109,7 +110,10 @@ class ConvergenceValidator:
                 z_next = self.model.dynamics(z, context, self.model.memory_patterns)
                 energy, _ = self.model.energy_fn(z, z_next, self.model.memory_patterns)
                 energy_value = float(energy.detach())
-                if last_energy is not None and energy_value > last_energy + self.config.energy_tolerance:
+                if (
+                    last_energy is not None
+                    and energy_value > last_energy + self.config.energy_tolerance
+                ):
                     violations += 1
                     break
                 if torch.linalg.vector_norm(z_next - z).item() < self.config.energy_tolerance:
@@ -176,7 +180,10 @@ class ConvergenceValidator:
                 z_next = self.model.dynamics(z, context, self.model.memory_patterns)
                 energy, _ = self.model.energy_fn(z, z_next, self.model.memory_patterns)
                 energy_val = float(energy.detach())
-                if prev_energy is not None and energy_val > prev_energy + self.config.energy_tolerance:
+                if (
+                    prev_energy is not None
+                    and energy_val > prev_energy + self.config.energy_tolerance
+                ):
                     is_valid = False
                     break
                 if torch.linalg.vector_norm(z_next - z).item() < self.config.energy_tolerance:

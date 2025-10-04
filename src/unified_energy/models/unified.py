@@ -1,4 +1,5 @@
 """Full unified architecture combining Mamba, Hopfield, and DEQ reasoning."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -389,4 +390,3 @@ class UnifiedMambaHopfieldDEQ(nn.Module):
 
 # Backwards compatibility for earlier imports
 UnifiedModel = UnifiedMambaHopfieldDEQ
-

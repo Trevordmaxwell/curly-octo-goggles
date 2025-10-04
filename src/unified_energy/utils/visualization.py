@@ -1,4 +1,5 @@
 """Plotting utilities for energy landscapes and convergence."""
+
 from __future__ import annotations
 
 from typing import Sequence

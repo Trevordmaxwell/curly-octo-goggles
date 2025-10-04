@@ -11,7 +11,14 @@ from unified_energy.training.trainer import CurriculumConfig, UnifiedModelTraine
 
 
 def _make_dummy_solver_config() -> SolverConfig:
-    return SolverConfig(max_iter=4, tol_fixedpoint=1e-3, tol_energy=1e-3, solver_type="alternating", anderson_memory=2, learning_rate=1e-2)
+    return SolverConfig(
+        max_iter=4,
+        tol_fixedpoint=1e-3,
+        tol_energy=1e-3,
+        solver_type="alternating",
+        anderson_memory=2,
+        learning_rate=1e-2,
+    )
 
 
 class DummyModel(nn.Module):
@@ -26,10 +33,18 @@ class DummyModel(nn.Module):
         self.solver = types.SimpleNamespace(config=_make_dummy_solver_config())
         self.energy_fn = _DummyEnergy()
 
-    def dynamics(self, z: torch.Tensor, context: torch.Tensor, memory_patterns: torch.Tensor) -> torch.Tensor:
+    def dynamics(
+        self, z: torch.Tensor, context: torch.Tensor, memory_patterns: torch.Tensor
+    ) -> torch.Tensor:
         return z + 0.1 * torch.tanh(z)
 
-    def forward(self, input_ids: torch.Tensor, *, update_memory: bool = True, return_diagnostics: bool = False):
+    def forward(
+        self,
+        input_ids: torch.Tensor,
+        *,
+        update_memory: bool = True,
+        return_diagnostics: bool = False,
+    ):
         context = self.embedding(input_ids)
         z_equilibrium = context.mean(dim=1)
         logits = self.output(context)
@@ -56,7 +71,7 @@ class DummyModel(nn.Module):
 
 class _DummyEnergy:
     def __call__(self, z: torch.Tensor, z_next: torch.Tensor, memory_patterns: torch.Tensor):
-        energy = 0.5 * (z ** 2).mean()
+        energy = 0.5 * (z**2).mean()
         components = {
             "hopfield": energy,
             "consistency": torch.mean((z - z_next) ** 2),
@@ -83,7 +98,15 @@ def test_training_objective_returns_all_components() -> None:
     diagnostics["logits"] = logits
     loss, components = objective.compute_loss(model, (input_ids, target_ids), diagnostics)
     assert loss.requires_grad
-    for key in ["total", "task", "energy", "convergence", "stability", "num_iterations", "lipschitz_constant"]:
+    for key in [
+        "total",
+        "task",
+        "energy",
+        "convergence",
+        "stability",
+        "num_iterations",
+        "lipschitz_constant",
+    ]:
         assert key in components
     assert "energy_components" in components
     loss.backward()
@@ -111,7 +134,12 @@ def test_trainer_step_and_validation_cycle() -> None:
         optimizer=optimizer,
         train_loader=train_data,
         val_loader=val_data,
-        curriculum=CurriculumConfig(warmup_steps=0, max_iter_schedule=(3, 5), tolerance_schedule=(1e-2, 5e-3), memory_enable_step=0),
+        curriculum=CurriculumConfig(
+            warmup_steps=0,
+            max_iter_schedule=(3, 5),
+            tolerance_schedule=(1e-2, 5e-3),
+            memory_enable_step=0,
+        ),
     )
     max_iter, tolerance, memory_enabled = trainer.get_curriculum_params()
     assert max_iter == 3

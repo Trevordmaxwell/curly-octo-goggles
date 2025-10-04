@@ -78,7 +78,9 @@ class DummyUnifiedModel(nn.Module):
         self.energy_fn = QuadraticEnergy()
         self.solver = LinearSolver(self.dynamics, self.energy_fn)
 
-    def dynamics(self, z: torch.Tensor, context: torch.Tensor, memory_patterns: torch.Tensor) -> torch.Tensor:
+    def dynamics(
+        self, z: torch.Tensor, context: torch.Tensor, memory_patterns: torch.Tensor
+    ) -> torch.Tensor:
         return 0.5 * z
 
 
@@ -91,7 +93,9 @@ def dummy_model() -> DummyUnifiedModel:
 def test_convergence_validator_runs(dummy_model: DummyUnifiedModel) -> None:
     validator = ConvergenceValidator(
         dummy_model,
-        config=ValidationConfig(context_length=3, batch_size=1, max_perturbation_trials=2, stability_radius=0.05),
+        config=ValidationConfig(
+            context_length=3, batch_size=1, max_perturbation_trials=2, stability_radius=0.05
+        ),
         device="cpu",
     )
     contraction = validator.test_contraction_property(num_samples=4)
@@ -113,7 +117,13 @@ def test_convergence_validator_runs(dummy_model: DummyUnifiedModel) -> None:
 def test_energy_landscape_analyzer_shapes(dummy_model: DummyUnifiedModel) -> None:
     analyzer = EnergyLandscapeAnalyzer(
         dummy_model,
-        config=LandscapeConfig(context_length=3, grid_resolution=5, exploration_radius=0.2, basin_resolution=5, basin_radius=0.3),
+        config=LandscapeConfig(
+            context_length=3,
+            grid_resolution=5,
+            exploration_radius=0.2,
+            basin_resolution=5,
+            basin_radius=0.3,
+        ),
         device="cpu",
     )
     z_eq = torch.zeros(1, dummy_model.d_model)

@@ -1,4 +1,5 @@
 """Curriculum-aware training loop for the unified model."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

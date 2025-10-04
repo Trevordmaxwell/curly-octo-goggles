@@ -1,4 +1,5 @@
 """Unified energy functional blending Hopfield, DEQ, and regularisation terms."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

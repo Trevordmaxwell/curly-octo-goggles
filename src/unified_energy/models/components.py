@@ -1,4 +1,5 @@
 """Reusable building blocks for the unified architecture."""
+
 from __future__ import annotations
 
 from typing import Optional

@@ -1,4 +1,5 @@
 """Lightweight surrogate for Mamba selective state-space layer."""
+
 from __future__ import annotations
 
 from typing import Optional

@@ -12,7 +12,9 @@ from unified_energy.training.objectives import UnifiedTrainingObjective
 from unified_energy.training.trainer import CurriculumConfig, UnifiedModelTrainer
 
 
-def _make_data(vocab_size: int, seq_len: int, batches: int, batch_size: int) -> List[Tuple[torch.Tensor, torch.Tensor]]:
+def _make_data(
+    vocab_size: int, seq_len: int, batches: int, batch_size: int
+) -> List[Tuple[torch.Tensor, torch.Tensor]]:
     return [
         (
             torch.randint(0, vocab_size, (batch_size, seq_len)),
@@ -58,7 +60,12 @@ def main() -> None:
         train_loader=train_data,
         val_loader=val_data,
         objective=UnifiedTrainingObjective(),
-        curriculum=CurriculumConfig(warmup_steps=0, max_iter_schedule=(args.max_iter,), tolerance_schedule=(1e-3,), memory_enable_step=0),
+        curriculum=CurriculumConfig(
+            warmup_steps=0,
+            max_iter_schedule=(args.max_iter,),
+            tolerance_schedule=(1e-3,),
+            memory_enable_step=0,
+        ),
         device="cpu",
         log_wandb=False,
     )
@@ -71,4 +78,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

@@ -14,11 +14,21 @@ from unified_energy.models.unified import UnifiedMambaHopfieldDEQ, UnifiedModelC
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--runs", type=int, default=5, help="Number of forward passes to profile")
-    parser.add_argument("--seq-len", type=int, default=64, help="Sequence length for the synthetic batch")
-    parser.add_argument("--batch-size", type=int, default=2, help="Batch size for the synthetic batch")
-    parser.add_argument("--d-model", type=int, default=128, help="Hidden size used for the test model")
-    parser.add_argument("--solver-type", choices=["alternating", "simultaneous", "cascade"], default="alternating")
-    parser.add_argument("--max-iter", type=int, default=15, help="Maximum solver iterations to profile")
+    parser.add_argument(
+        "--seq-len", type=int, default=64, help="Sequence length for the synthetic batch"
+    )
+    parser.add_argument(
+        "--batch-size", type=int, default=2, help="Batch size for the synthetic batch"
+    )
+    parser.add_argument(
+        "--d-model", type=int, default=128, help="Hidden size used for the test model"
+    )
+    parser.add_argument(
+        "--solver-type", choices=["alternating", "simultaneous", "cascade"], default="alternating"
+    )
+    parser.add_argument(
+        "--max-iter", type=int, default=15, help="Maximum solver iterations to profile"
+    )
     parser.add_argument("--seed", type=int, default=13, help="Random seed for reproducibility")
     return parser.parse_args()
 
@@ -45,7 +55,9 @@ def profile_solver() -> None:
     args = parse_args()
     torch.manual_seed(args.seed)
     model = build_model(args)
-    input_ids = torch.randint(0, model.output_proj[-1].out_features, (args.batch_size, args.seq_len))
+    input_ids = torch.randint(
+        0, model.output_proj[-1].out_features, (args.batch_size, args.seq_len)
+    )
 
     durations: list[float] = []
     for run in range(args.runs):

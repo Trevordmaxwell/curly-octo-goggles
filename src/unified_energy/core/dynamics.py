@@ -1,4 +1,5 @@
 """Unified dynamics blending Mamba temporal updates with Hopfield retrieval."""
+
 from __future__ import annotations
 
 from typing import Dict, Tuple, Union

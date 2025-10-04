@@ -1,4 +1,5 @@
 """Baseline fixed-point solvers used by the unified equilibrium solver."""
+
 from __future__ import annotations
 
 from typing import Callable

@@ -95,7 +95,9 @@ def test_solver_reports_non_convergence() -> None:
 
     dynamics = ExpandingDynamics()
     energy = QuadraticEnergy()
-    solver = UnifiedEquilibriumSolver(dynamics, energy, SolverConfig(max_iter=3, tol_fixedpoint=1e-6))
+    solver = UnifiedEquilibriumSolver(
+        dynamics, energy, SolverConfig(max_iter=3, tol_fixedpoint=1e-6)
+    )
     solver.config.solver_type = "alternating"
 
     z0 = torch.randn(1, 4)

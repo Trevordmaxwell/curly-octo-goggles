@@ -13,7 +13,9 @@ def test_energy_components_sum_to_total() -> None:
     memory = torch.randn(8, 5)
 
     total, components = energy_fn(z, z_next, memory, compute_grad=True)
-    reconstructed = sum(float(components[key].detach()) for key in ("hopfield", "consistency", "regularization"))
+    reconstructed = sum(
+        float(components[key].detach()) for key in ("hopfield", "consistency", "regularization")
+    )
     assert pytest.approx(float(total.detach())) == reconstructed
 
 

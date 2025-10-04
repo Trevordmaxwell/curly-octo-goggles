@@ -1,4 +1,5 @@
 """Training objectives for the unified Mamba-Hopfield-DEQ model."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -83,10 +84,7 @@ class UnifiedTrainingObjective:
         )
 
         total_loss = (
-            self.config.task_weight * task_loss
-            + energy_loss
-            + convergence_loss
-            + stability_loss
+            self.config.task_weight * task_loss + energy_loss + convergence_loss + stability_loss
         )
 
         components = {
@@ -133,7 +131,11 @@ class UnifiedTrainingObjective:
         context = diagnostics.get("context")
         z_equilibrium = diagnostics.get("z_equilibrium")
         if not isinstance(context, Tensor) or not isinstance(z_equilibrium, Tensor):
-            device = getattr(model, "memory_patterns", torch.empty(0)).device if hasattr(model, "memory_patterns") else "cpu"
+            device = (
+                getattr(model, "memory_patterns", torch.empty(0)).device
+                if hasattr(model, "memory_patterns")
+                else "cpu"
+            )
             base_dtype = dtype or torch.float32
             return torch.zeros((), device=device, dtype=base_dtype)
         estimates: list[Tensor] = []

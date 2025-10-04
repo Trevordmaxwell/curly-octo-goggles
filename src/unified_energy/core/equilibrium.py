@@ -1,4 +1,5 @@
 """Interfaces for joint equilibrium solvers."""
+
 from __future__ import annotations
 
 from typing import Tuple
