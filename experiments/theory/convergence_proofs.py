@@ -2,6 +2,5 @@
 
 
 def placeholder() -> None:
-    """Placeholder function for future implementation."""
-
-    raise NotImplementedError
+    """Raise NotImplementedError for unfinished convergence experiments."""
+    raise NotImplementedError("Convergence proofs placeholder")
