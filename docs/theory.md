@@ -37,3 +37,13 @@ Every solver invocation now surfaces the raw energy terms as tensors and reports
 - `test_solver_reports_non_convergence` drives a deliberately non-contractive system and asserts that the solver returns a detailed diagnostic payload instead of silently failing.
 
 These tests double as reference code for building minimal reproduction cases when you iterate on new solver logic without hardware acceleration.
+
+## Finding Friendly CPU Hyperparameters
+
+The default random configuration rarely satisfies all theoretical checks. Use `scripts/scan_validation.py` to sweep a handful of small Mamba/Hopfield/solver settings and capture the best performers:
+
+```bash
+python scripts/scan_validation.py --runs 2 --out validation_scan.json
+```
+
+The tool prints a ranked table (highest mean score first) and optionally saves the full JSON report. Once you identify a configuration with a few passing metrics, pass its values back to `scripts/run_validation.py` (or set them inline in a notebook) to generate reproducible diagnostics.

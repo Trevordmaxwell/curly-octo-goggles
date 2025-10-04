@@ -61,6 +61,7 @@ Each directory aligns with the architect's plan and now contains scaffolding or 
 - `scripts/profile_solver.py` profiles equilibrium solves on CPU and reports convergence statistics for quick regressions while awaiting accelerator access.
 - `scripts/run_validation.py` runs the full `ConvergenceValidator` battery and writes JSON results.
 - `scripts/train_dummy.py` executes a tiny trainer loop on random data as a smoke test.
+- `scripts/scan_validation.py` explores small model hyperparameters and surfaces CPU-friendly presets.
 
 ## Developer Conveniences
 
