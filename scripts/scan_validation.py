@@ -83,10 +83,15 @@ def run_single(cfg: SearchConfig, seed: int) -> dict:
         ),
         device="cpu",
     )
-    return validator.run_all_tests()
+    try:
+        return validator.run_all_tests()
+    except RuntimeError as exc:
+        return {"error": str(exc)}
 
 
 def score(summary: dict) -> int:
+    if "error" in summary:
+        return -1
     metrics = [
         summary["contraction"].get("is_contractive", False),
         summary["energy_descent"].get("monotonic_descent", False),
@@ -101,7 +106,7 @@ def aggregate_results(cfg: SearchConfig, args: argparse.Namespace) -> dict:
     for run_idx in range(args.runs):
         seed = args.seed + run_idx
         summaries.append(run_single(cfg, seed))
-    scores = [score(s) for s in summaries]
+    scores = [score(s) if "error" not in s else -1 for s in summaries]
     best = max(zip(scores, summaries), key=lambda t: t[0])[1]
     result = {
         "config": cfg.__dict__,
