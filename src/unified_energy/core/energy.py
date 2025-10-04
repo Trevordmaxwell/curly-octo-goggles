@@ -37,12 +37,14 @@ class UnifiedEnergyFunction(nn.Module):
         self.d_model = d_model
         self.hyper = hyper or EnergyHyperParameters()
 
-    def hopfield_energy(self, z: Tensor, memory_patterns: Tensor) -> Tensor:
+    def hopfield_energy(
+        self, z: Tensor, memory_patterns: Tensor, *, beta: float | None = None
+    ) -> Tensor:
         """Modern Hopfield energy: :math:`-\log\sum_i \exp(\beta \langle z, m_i\rangle)`."""
 
         self._validate_latent(z, memory_patterns)
-        beta = self.hyper.beta
-        logits = beta * z @ memory_patterns.t()
+        beta_value = self._resolve_beta(beta)
+        logits = beta_value * z @ memory_patterns.t()
         energy = -torch.logsumexp(logits, dim=-1)
         return energy
 
@@ -70,11 +72,12 @@ class UnifiedEnergyFunction(nn.Module):
         z_next: Tensor,
         memory_patterns: Tensor,
         *,
+        beta: float | None = None,
         compute_grad: bool = False,
     ) -> Tuple[Tensor, Dict[str, float]]:
         """Compute total energy and per-term diagnostics."""
 
-        hopfield = self.hopfield_energy(z, memory_patterns).mean()
+        hopfield = self.hopfield_energy(z, memory_patterns, beta=beta).mean()
         consistency = self.hyper.alpha * self.consistency_energy(z, z_next).mean()
 
         grad_z = None
@@ -96,6 +99,8 @@ class UnifiedEnergyFunction(nn.Module):
         z: Tensor,
         memory_patterns: Tensor,
         z_next: Optional[Tensor] = None,
+        *,
+        beta: float | None = None,
     ) -> Tensor:
         """Compute gradient of total energy w.r.t. ``z``.
 
@@ -124,10 +129,17 @@ class UnifiedEnergyFunction(nn.Module):
                 z_req,
                 z_next_input,
                 memory_patterns,
+                beta=beta,
                 compute_grad=True,
             )
         grad = torch.autograd.grad(energy, z_req, create_graph=False, retain_graph=False)[0]
         return grad
+
+    def _resolve_beta(self, beta: float | None) -> float:
+        beta_value = self.hyper.beta if beta is None else beta
+        if beta_value <= 0:
+            raise ValueError("beta must be positive")
+        return beta_value
 
     def _validate_latent(self, z: Tensor, memory_patterns: Tensor) -> None:
         if z.ndim != 2:

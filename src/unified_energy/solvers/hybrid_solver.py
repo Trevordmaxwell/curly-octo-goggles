@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Sequence, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple
 
 import torch
 from torch import Tensor
 
+from .beta_schedule import BetaAnnealingSchedule
 
 @dataclass(slots=True)
 class SolverConfig:
@@ -38,10 +39,18 @@ class SolverConfig:
 class UnifiedEquilibriumSolver:
     """Solve for states satisfying both fixed-point and energy optimality."""
 
-    def __init__(self, dynamics_fn, energy_fn, config: SolverConfig | None = None) -> None:
+    def __init__(
+        self,
+        dynamics_fn,
+        energy_fn,
+        config: SolverConfig | None = None,
+        *,
+        beta_schedule: BetaAnnealingSchedule | None = None,
+    ) -> None:
         self.dynamics = dynamics_fn
         self.energy = energy_fn
         self.config = config or SolverConfig()
+        self.beta_schedule = beta_schedule
 
     def fixed_point_step(
         self,
@@ -49,10 +58,12 @@ class UnifiedEquilibriumSolver:
         x_context: Tensor,
         memory_patterns: Tensor,
         history: Sequence[Tuple[Tensor, Tensor]],
+        *,
+        beta: float | None = None,
     ) -> Tensor:
         """Perform an Anderson-accelerated fixed-point iteration."""
 
-        f_z = self.dynamics(z, x_context, memory_patterns)
+        f_z = self.dynamics(z, x_context, memory_patterns, beta=beta)
         if len(history) < 2:
             return f_z
         residuals = [f_prev - z_prev for z_prev, f_prev in history[-self.config.anderson_memory :]]
@@ -70,11 +81,15 @@ class UnifiedEquilibriumSolver:
         z: Tensor,
         x_context: Tensor,
         memory_patterns: Tensor,
+        *,
+        beta: float | None = None,
     ) -> Tensor:
         """Gradient descent step on the unified energy."""
 
-        z_next = self.dynamics(z, x_context, memory_patterns)
-        grad = self.energy.energy_gradient(z, memory_patterns, z_next=z_next)
+        z_next = self.dynamics(z, x_context, memory_patterns, beta=beta)
+        grad = self.energy.energy_gradient(
+            z, memory_patterns, z_next=z_next, beta=beta
+        )
         return z - self.config.learning_rate * grad
 
     def alternating_solve(
@@ -94,16 +109,29 @@ class UnifiedEquilibriumSolver:
         last_fp_residual = torch.tensor(0.0, device=z.device)
         last_energy_grad = torch.tensor(0.0, device=z.device)
         for iteration in range(self.config.max_iter):
+            beta_value = self._beta_for_iteration(iteration + 1)
             if iteration % 2 == 0:
-                z_next = self.fixed_point_step(z, x_context, memory_patterns, history)
+                z_next = self.fixed_point_step(
+                    z,
+                    x_context,
+                    memory_patterns,
+                    history,
+                    beta=beta_value,
+                )
             else:
-                z_next = self.energy_descent_step(z, x_context, memory_patterns)
-            f_z = self.dynamics(z_next, x_context, memory_patterns)
-            energy_value, components = self.energy(z_next, f_z, memory_patterns)
+                z_next = self.energy_descent_step(
+                    z, x_context, memory_patterns, beta=beta_value
+                )
+            f_z = self.dynamics(z_next, x_context, memory_patterns, beta=beta_value)
+            energy_value, components = self.energy(
+                z_next, f_z, memory_patterns, beta=beta_value
+            )
             energy_history.append(float(energy_value.detach()))
             history.append((z_next.detach(), f_z.detach()))
             fp_residual = torch.norm(f_z - z_next)
-            energy_grad = self.energy.energy_gradient(z_next, memory_patterns, z_next=f_z)
+            energy_grad = self.energy.energy_gradient(
+                z_next, memory_patterns, z_next=f_z, beta=beta_value
+            )
             energy_grad_norm = torch.norm(energy_grad)
             last_energy_value = energy_value
             last_components = {k: float(v.detach()) for k, v in components.items()}
@@ -153,16 +181,21 @@ class UnifiedEquilibriumSolver:
         last_fp_residual = torch.tensor(0.0, device=z.device)
         last_energy_grad = torch.tensor(0.0, device=z.device)
         for iteration in range(self.config.max_iter):
+            beta_value = self._beta_for_iteration(iteration + 1)
             optimizer.zero_grad()
-            f_z = self.dynamics(z, x_context, memory_patterns)
+            f_z = self.dynamics(z, x_context, memory_patterns, beta=beta_value)
             fp_loss = torch.sum((z - f_z) ** 2)
-            energy_value, components = self.energy(z, f_z, memory_patterns)
+            energy_value, components = self.energy(
+                z, f_z, memory_patterns, beta=beta_value
+            )
             total_loss = fp_loss + energy_value
             total_loss.backward()
             optimizer.step()
             with torch.no_grad():
                 fp_residual = torch.norm(z - f_z)
-                energy_grad = self.energy.energy_gradient(z, memory_patterns, z_next=f_z)
+                energy_grad = self.energy.energy_gradient(
+                    z, memory_patterns, z_next=f_z, beta=beta_value
+                )
                 energy_grad_norm = torch.norm(energy_grad)
                 energy_history.append(float(energy_value.detach()))
                 last_energy_value = energy_value.detach()
@@ -204,8 +237,9 @@ class UnifiedEquilibriumSolver:
         """First reach a fixed point quickly, then refine with energy minimisation."""
 
         z = z_init
-        for _ in range(max(1, self.config.max_iter // 2)):
-            z_next = self.dynamics(z, x_context, memory_patterns)
+        for iteration in range(max(1, self.config.max_iter // 2)):
+            beta_value = self._beta_for_iteration(iteration + 1)
+            z_next = self.dynamics(z, x_context, memory_patterns, beta=beta_value)
             if torch.norm(z_next - z) < self.config.tol_fixedpoint:
                 z = z_next
                 break
@@ -215,17 +249,23 @@ class UnifiedEquilibriumSolver:
 
         def closure() -> Tensor:
             optimizer.zero_grad()
-            f_z = self.dynamics(z, x_context, memory_patterns)
-            energy_value, _ = self.energy(z, f_z, memory_patterns)
+            beta_value = self._beta_for_iteration(1)
+            f_z = self.dynamics(z, x_context, memory_patterns, beta=beta_value)
+            energy_value, _ = self.energy(z, f_z, memory_patterns, beta=beta_value)
             energy_value.backward()
             return energy_value
 
         optimizer.step(closure)
         with torch.no_grad():
-            f_z = self.dynamics(z, x_context, memory_patterns)
-            energy_value, components = self.energy(z, f_z, memory_patterns)
+            beta_value = self._beta_for_iteration(1)
+            f_z = self.dynamics(z, x_context, memory_patterns, beta=beta_value)
+            energy_value, components = self.energy(
+                z, f_z, memory_patterns, beta=beta_value
+            )
             fp_residual = torch.norm(f_z - z)
-            energy_grad = self.energy.energy_gradient(z, memory_patterns, z_next=f_z)
+            energy_grad = self.energy.energy_gradient(
+                z, memory_patterns, z_next=f_z, beta=beta_value
+            )
             energy_grad_norm = torch.norm(energy_grad)
         return z.detach(), {
             "converged": fp_residual.item() < self.config.tol_fixedpoint
@@ -281,3 +321,9 @@ class UnifiedEquilibriumSolver:
         coeffs = torch.linalg.solve(gram + 1e-6 * eye, ones)
         coeffs = coeffs / coeffs.sum()
         return coeffs.tolist()
+
+    def _beta_for_iteration(self, iteration: int) -> Optional[float]:
+        if self.beta_schedule is None:
+            return None
+        total = self.config.max_iter
+        return self.beta_schedule.value(iteration, total_steps=total)
