@@ -11,8 +11,10 @@ empirical rigor.
 """
 
 __all__ = [
+    "backbones",
     "core",
     "models",
+    "memory",
     "solvers",
     "training",
     "experiments",
