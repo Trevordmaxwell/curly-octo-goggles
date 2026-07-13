@@ -65,6 +65,31 @@ Each directory aligns with the architect's plan and now contains scaffolding or 
 - `scripts/random_validation.py` performs stochastic sampling over compact configurations and stops once a positive validation score is found.
 - Example outputs live under `docs/examples/` (see `random_search_seed*.json` and `cpu_validation_baseline.json`).
 
+## Visualization Demo
+
+Use `scripts/visualize_hyper_shapes.py` to launch the interactive plotting utility for arrays of 4D shapes. Shapes are rendered as 3D scatter plots whose colors encode the hidden (dropped) axis, and semi-transparent planes fill the bounding box to give depth cues while sliders let you translate content along each of the four axes.
+
+```
+python scripts/visualize_hyper_shapes.py --drop-axis w
+python scripts/visualize_hyper_shapes.py --shapes-file my_shapes.json --axis-order yxzw
+```
+
+On macOS you can also double-click `visualize_hyper_shapes.command` in the project root to run the viewer with default settings (the script simply calls the CLI above).
+
+Shapes can also be specified in a JSON file:
+
+```json
+[
+  {
+    "name": "demo-cube",
+    "color": "#ff8844",
+    "points": [[0, 0, 0, 0], [1, 1, 1, 1], [-1, -1, 1, 0]]
+  }
+]
+```
+
+If no file is supplied, three canonical shapes (tesseract, simplex, hyper-cross) are generated automatically.
+
 ## Developer Conveniences
 
 - `Makefile` targets:
